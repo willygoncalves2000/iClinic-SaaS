@@ -4,6 +4,9 @@ import { authClient } from "@/lib/auth-client";
 import { headers } from "next/headers";
 import SignOutButton from "./components/sign-out-button";
 import { redirect } from "next/navigation";
+import { db } from "@/db";
+import { eq } from "drizzle-orm";
+import { usersToClinicsTable } from "@/db/schema";
 
 const DashboardPage = async () => {
   const session = await auth.api.getSession({
@@ -16,6 +19,21 @@ const DashboardPage = async () => {
    */
   if (!session?.user) {
     redirect("/authentication");
+  }
+
+  /**
+   * Pega as clínicas associadas ao usuário logado.
+   * Isso é um exemplo de como você pode usar o Drizzle ORM para fazer consultas ao banco de dados com base no usuário autenticado.
+   */
+  const clinics = await db.query.usersToClinicsTable.findMany({
+    where: eq(usersToClinicsTable.userId, session.user.id),
+  });
+
+  /**
+   * Se o usuário não tiver clínicas associadas, redireciona para o formulário de criação de clínica.
+   */
+  if (clinics.length === 0) {
+    redirect("/clinic-form");
   }
 
   return (
