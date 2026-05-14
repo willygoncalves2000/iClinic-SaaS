@@ -27,11 +27,15 @@ import { toast } from "sonner";
 import z from "zod";
 
 const loginSchema = z.object({
-  email: z.email().trim().min(1, { message: "E-mail é obrigatório" }),
-  password: z
+  email: z
     .string()
     .trim()
-    .min(8, { message: "A senha deve ter pelo menos 8 caracteres" }),
+    .min(1, { message: "E-mail é obrigatório" })
+    .email({ message: "E-mail inválido" }),
+
+  password: z.string().trim().min(8, {
+    message: "A senha deve ter pelo menos 8 caracteres",
+  }),
 });
 
 const LoginForm = () => {
