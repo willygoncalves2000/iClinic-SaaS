@@ -44,7 +44,7 @@ const LoginForm = () => {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  const handleSubmit = async (values: z.infer<typeof loginSchema>) => {
     await authClient.signIn.email(
       {
         email: values.email,
@@ -59,12 +59,19 @@ const LoginForm = () => {
         },
       },
     );
-  }
+  };
+
+  const handleGoogleSignIn = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard",
+    });
+  };
 
   return (
     <Card>
       <Form {...form}>
-        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
           <CardHeader>
             <CardTitle>Login</CardTitle>
             <CardDescription>Faça login para continuar.</CardDescription>
@@ -114,7 +121,12 @@ const LoginForm = () => {
                   "Entrar"
                 )}
               </Button>
-              <Button variant="outline" className="w-full" type="button">
+              <Button
+                variant="outline"
+                className="w-full"
+                type="button"
+                onClick={handleGoogleSignIn}
+              >
                 <svg viewBox="0 0 24 24" className="mr-2 h-4 w-4">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
