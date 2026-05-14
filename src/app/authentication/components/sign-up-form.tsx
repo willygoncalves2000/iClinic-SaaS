@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { z } from "zod";
 
@@ -58,6 +59,18 @@ const SignUpForm = () => {
       {
         onSuccess: () => {
           router.push("/dashboard");
+        },
+        onError: (ctx) => {
+          console.log(ctx);
+          if (ctx.error.status === 422) {
+            toast.error(
+              "E-mail já registrado. Por favor, use outro e-mail ou faça login.",
+            );
+            return;
+          }
+          toast.error(
+            "Ocorreu um erro ao criar a conta. Por favor, tente novamente.",
+          );
         },
       },
     );
