@@ -20,17 +20,9 @@ const DashboardPage = async () => {
   }
 
   /**
-   * Pega as clínicas associadas ao usuário logado.
-   * Isso é um exemplo de como você pode usar o Drizzle ORM para fazer consultas ao banco de dados com base no usuário autenticado.
-   */
-  const clinics = await db.query.usersToClinicsTable.findMany({
-    where: eq(usersToClinicsTable.userId, session.user.id),
-  });
-
-  /**
    * Se o usuário não tiver clínicas associadas, redireciona para o formulário de criação de clínica.
    */
-  if (clinics.length === 0) {
+  if (!session.user.clinic) {
     redirect("/clinic-form");
   }
 
