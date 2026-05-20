@@ -32,12 +32,15 @@ import {
 import { useForm } from "react-hook-form";
 import { medicalSpecialties } from "../_constants";
 import { upsertDoctor } from "@/actions/upsert-doctor";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect } from "react";
 
+/**
+ * Esquema de validação para o formulário de cadastro/edição de médico.
+ * Ele define os campos necessários e as regras de validação para cada um,
+ * garantindo que os dados enviados sejam consistentes e válidos antes de serem processados pela ação de upsertDoctor.
+ */
 const doctorFormSchema = z
   .object({
     name: z.string().trim().min(1, {
@@ -69,9 +72,13 @@ const doctorFormSchema = z
     },
   );
 
+// Interface para as props do componente UpsertDoctorForm.
+// Ele define uma função opcional onSuccess, que pode ser passada para o componente para ser executada após o sucesso da ação de upsertDoctor,
+// permitindo que o componente pai possa reagir a esse evento, como fechar um modal ou atualizar uma lista de médicos.
 interface UpsertDoctorFormProps {
   onSuccess?: () => void;
 }
+
 const UpsertDoctorForm = ({ onSuccess }: UpsertDoctorFormProps) => {
   const form = useForm<z.infer<typeof doctorFormSchema>>({
     resolver: zodResolver(doctorFormSchema),
@@ -86,6 +93,8 @@ const UpsertDoctorForm = ({ onSuccess }: UpsertDoctorFormProps) => {
     },
   });
 
+  // useAction é um hook fornecido pela biblioteca next-safe-action que facilita a execução de ações do servidor a partir de componentes React.
+  // Ele gerencia o estado da ação (como loading, success, error) e fornece uma função execute para chamar a ação com os dados necessários.
   const upsertDoctorAction = useAction(upsertDoctor, {
     onSuccess: () => {
       toast.success("Médico adicionado com sucesso.");
