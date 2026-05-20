@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
 import { upsertDoctorSchema } from "./schema";
+import { revalidatePath } from "next/cache";
 
 /**
  * Cria um novo médico e associa à clínica.
@@ -85,4 +86,5 @@ export const upsertDoctor = actionClient
           availableToTime: avaialbleToTimeUTC.format("HH:mm:ss"),
         },
       });
+    revalidatePath("/doctors");
   });
