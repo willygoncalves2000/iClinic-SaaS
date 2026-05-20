@@ -31,8 +31,14 @@ import {
 
 import { useForm } from "react-hook-form";
 import { medicalSpecialties } from "../_constants";
+import { upsertDoctor } from "@/actions/upsert-doctor";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useEffect } from "react";
 
-const formSchema = z
+const doctorFormSchema = z
   .object({
     name: z.string().trim().min(1, {
       message: "Nome é obrigatório",
@@ -63,9 +69,12 @@ const formSchema = z
     },
   );
 
-const UpsertDoctorForm = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+interface UpsertDoctorFormProps {
+  onSuccess?: () => void;
+}
+const UpsertDoctorForm = ({ onSuccess }: UpsertDoctorFormProps) => {
+  const form = useForm<z.infer<typeof doctorFormSchema>>({
+    resolver: zodResolver(doctorFormSchema),
     defaultValues: {
       name: "",
       specialty: "",
@@ -77,15 +86,30 @@ const UpsertDoctorForm = () => {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
+  const upsertDoctorAction = useAction(upsertDoctor, {
+    onSuccess: () => {
+      toast.success("Médico adicionado com sucesso.");
+      onSuccess?.();
+    },
+    onError: () => {
+      toast.error("Erro ao adicionar médico.");
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof doctorFormSchema>) => {
+    upsertDoctorAction.execute({
+      ...values,
+      availableFromWeekDay: parseInt(values.availableFromWeekDay),
+      availableToWeekDay: parseInt(values.availableToWeekDay),
+      appointmentPriceInCents: values.appointmentPrice * 100,
+    });
   };
 
   return (
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Adicionar médico</DialogTitle>
-        <DialogDescription>Adicione um nomo médico.</DialogDescription>
+        <DialogDescription>Adicione um novo médico.</DialogDescription>
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -134,29 +158,29 @@ const UpsertDoctorForm = () => {
             name="appointmentPrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Preço da Consulta</FormLabel>
-
-                <NumericFormat
-                  value={field.value}
-                  onValueChange={(values) => {
-                    field.onChange(values.floatValue ?? 0);
-                  }}
-                  onFocus={(event) => {
-                    event.target.select();
-                  }}
-                  onClick={(event) => {
-                    event.currentTarget.select();
-                  }}
-                  decimalScale={2}
-                  fixedDecimalScale
-                  decimalSeparator=","
-                  allowNegative={false}
-                  allowLeadingZeros={false}
-                  thousandSeparator="."
-                  customInput={Input}
-                  prefix="R$ "
-                />
-
+                <FormLabel>Preço da consulta</FormLabel>
+                <FormControl>
+                  <NumericFormat
+                    value={field.value}
+                    onValueChange={(values) => {
+                      field.onChange(values.floatValue ?? 0);
+                    }}
+                    onFocus={(event) => {
+                      event.target.select();
+                    }}
+                    onClick={(event) => {
+                      event.currentTarget.select();
+                    }}
+                    decimalScale={2}
+                    fixedDecimalScale
+                    decimalSeparator=","
+                    allowNegative={false}
+                    allowLeadingZeros={false}
+                    thousandSeparator="."
+                    customInput={Input}
+                    prefix="R$ "
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -358,7 +382,12 @@ const UpsertDoctorForm = () => {
             )}
           />
           <DialogFooter>
-            <Button type="submit">Adicionar</Button>
+            <Button type="submit" disabled={upsertDoctorAction.isPending}>
+              {upsertDoctorAction.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              Adicionar
+            </Button>
           </DialogFooter>
         </form>
       </Form>
